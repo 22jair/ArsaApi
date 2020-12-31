@@ -4,27 +4,25 @@ Class Sale{
 
     private $id_sale;
     private $date_sale;
-    private $id_payment_type;
-    private $payment_type_name;
     private $comment;
-    private $remaining_payment = 0.0;
+    private $net_amount = 0.0;
+    private $total_commission = 0.0;
     private $total_amount = 0.0;
-    private $id_sale_state;
-    private $sale_state_name;
+    private $payment_type;    
+    private $sale_state;
     private $at_created;
     private $at_updated;
 
-    function __construct($id_sale, $date_sale, $id_payment_type, $payment_type_name, $comment, $remaining_payment, $total_amount, $id_sale_state, $sale_state_name, $at_created, $at_updated)
+    function __construct($id_sale, $date_sale, $comment, $net_amount, $total_commission, $total_amount, $payment_type, $sale_state, $at_created, $at_updated)
     {
         $this->id_sale = $id_sale;
         $this->date_sale = $date_sale;
-        $this->id_payment_type = $id_payment_type;
-        $this->payment_type_name = $payment_type_name;
         $this->comment = $comment;
-        $this->remaining_payment = $remaining_payment;
+        $this->net_amount = $net_amount;
+        $this->total_commission = $total_commission;
         $this->total_amount = $total_amount;
-        $this->id_sale_state = $id_sale_state;
-        $this->sale_state_name = $sale_state_name;
+        $this->payment_type = $payment_type;
+        $this->sale_state = $sale_state;
         $this->at_created = $at_created;
         $this->at_updated = $at_updated;
     }
@@ -74,26 +72,6 @@ Class Sale{
     }
 
     /**
-     * Get the value of id_payment_type
-     */ 
-    public function getId_payment_type()
-    {
-        return $this->id_payment_type;
-    }
-
-    /**
-     * Set the value of id_payment_type
-     *
-     * @return  self
-     */ 
-    public function setId_payment_type($id_payment_type)
-    {
-        $this->id_payment_type = $id_payment_type;
-
-        return $this;
-    }
-
-    /**
      * Get the value of comment
      */ 
     public function getComment()
@@ -114,21 +92,21 @@ Class Sale{
     }
 
     /**
-     * Get the value of remaining_payment
+     * Get the value of net_amount
      */ 
-    public function getRemaining_payment()
+    public function getNet_amount()
     {
-        return $this->remaining_payment;
+        return $this->net_amount;
     }
 
     /**
-     * Set the value of remaining_payment
+     * Set the value of net_amount
      *
      * @return  self
      */ 
-    public function setRemaining_payment($remaining_payment)
+    public function setNet_amount($net_amount)
     {
-        $this->remaining_payment = $remaining_payment;
+        $this->net_amount = $net_amount;
 
         return $this;
     }
@@ -149,26 +127,6 @@ Class Sale{
     public function setTotal_amount($total_amount)
     {
         $this->total_amount = $total_amount;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of id_sale_state
-     */ 
-    public function getId_sale_state()
-    {
-        return $this->id_sale_state;
-    }
-
-    /**
-     * Set the value of id_sale_state
-     *
-     * @return  self
-     */ 
-    public function setId_sale_state($id_sale_state)
-    {
-        $this->id_sale_state = $id_sale_state;
 
         return $this;
     }
@@ -213,42 +171,63 @@ Class Sale{
         return $this;
     }
 
+
     /**
-     * Get the value of payment_type_name
+     * Get the value of payment_type
      */ 
-    public function getPayment_type_name()
+    public function getPayment_type()
     {
-        return $this->payment_type_name;
+        return $this->payment_type;
     }
 
     /**
-     * Set the value of payment_type_name
+     * Set the value of payment_type
      *
      * @return  self
      */ 
-    public function setPayment_type_name($payment_type_name)
+    public function setPayment_type($payment_type)
     {
-        $this->payment_type_name = $payment_type_name;
+        $this->payment_type = $payment_type;
 
         return $this;
     }
 
     /**
-     * Get the value of sale_state_name
+     * Get the value of sale_state
      */ 
-    public function getSale_state_name()
+    public function getSale_state()
     {
-        return $this->sale_state_name;
+        return $this->sale_state;
     }
 
     /**
-     * Set the value of sale_state_name
+     * Set the value of sale_state
      *
      * @return  self
      */ 
-    public function setSale_state_name($sale_state_name)
+    public function setSale_state($sale_state)
     {
-        $this->sale_state_name = $sale_state_name;
+        $this->sale_state = $sale_state;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of total_commission
+     */ 
+    public function getTotal_commission()
+    {
+        return $this->total_commission;
+    }
+
+    /**
+     * Set the value of total_commission
+     *
+     * @return  self
+     */ 
+    public function setTotal_commission($total_commission)
+    {
+        $this->total_commission = $total_commission;
 
         return $this;
     }
