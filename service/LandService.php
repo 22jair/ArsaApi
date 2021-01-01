@@ -105,6 +105,51 @@ include_once __DIR__.'./../db/conexion.php';
             }  
         }
 
+        function land_availability($lands){            
+            $conexion = $this->Connect();
+            $resp = true;
+            foreach($lands as $item){  
+                //buscamos si tiene el estado 1 : EN VENTA                
+                $query = "SELECT * FROM TB_LAND WHERE id_land = :id_land AND id_land_state = :id_land_state;";
+                $result = $conexion->prepare($query);
+                $result->execute([
+                    ":id_land" => $item["id_land"],
+                    ":id_land_state" => 1,
+                    ]);
+                $data = $result->fetchAll(PDO::FETCH_ASSOC);                
+                if(count($data) == 0){                   
+                    $resp = false;                   
+                    break;
+                }
+            }
+            return $resp;
+        }
+
+        function update_lands_state($lands){
+            try{                                
+                $conexion = $this->Connect();
+                foreach($lands as $item){                      
+                    $execute = [":id_land"=> (int) $item["id_land"]];
+                    $query = "UPDATE TB_LAND SET id_land_state = :id_land_state WHERE id_land = :id_land;";                                                                                        
+                    $result = $conexion->prepare($query);    
+                    // 1 = al contado / 2 en partes
+                    if((int)$item["id_payment_method"] == 1){                        
+                        // vendido : ya tiene dueño
+                        $execute["id_land_state"] = 2;
+                    }else{
+                        //separado : tiene dueño pero sigue pagando
+                        $execute["id_land_state"] = 3;
+                    }                    
+                    var_dump($execute);
+                    //$result->execute($execute);                                            
+                }                                      
+                 return true;
+            }   
+            catch(Exception $e){            
+               throw new Exception($e->getMessage());
+            }        
+        }
+
         function update(){}
 
         function delete(){}

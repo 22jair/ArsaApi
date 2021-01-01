@@ -1,13 +1,18 @@
 <?php
 
     include_once __DIR__.'./../db/conexion.php';
-    include __DIR__.'./../model/Sale.php';
-    include __DIR__.'./../model/SaleState.php';
-    include __DIR__.'./../model/PaymentType.php';
+    include_once __DIR__.'./../model/Sale.php';
+    include_once __DIR__.'./../model/SaleState.php';
+    include_once __DIR__.'./../model/PaymentType.php';
+    include_once __DIR__.'./LandService.php';
 
     class SaleService extends Conexion {
         
-        function __construct(){}
+        private $service_land;
+
+        function __construct(){      
+            $this->service_land = new LandService();      
+        }
         
         function getAll(){
             try{
@@ -19,7 +24,7 @@
                 $data = $result->fetchAll(PDO::FETCH_ASSOC);            
 
                 foreach($data as $item){
-                    //empty object new stdClass()
+                    // empty object new stdClass()
                     $payment_type = new PaymentType("payment_type_id", "payment_type_name", null, null);            
                     $sale_state = new SaleState("sale_state_id", "sale_state_name", null, null);                
                     
@@ -41,9 +46,9 @@
                 return $dataList;
             }   
             catch(Exception $e){
-                //NO RETORNAMOS EL MENSAJE POR QUE EL USUARIO NO DEBE SABER Q ERROR TIENE LA BD
-                //return $e->getMessage();
-                //throw new Exception("Error en el Sistema");
+                // NO RETORNAMOS EL MENSAJE POR QUE EL USUARIO NO DEBE SABER Q ERROR TIENE LA BD
+                // return $e->getMessage();
+                // throw new Exception("Error en el Sistema");
                 throw new Exception($e->getMessage());
             }            
         }
@@ -61,7 +66,7 @@
                 $dataList = array();
 
                 foreach($data as $item){
-                   //empty object new stdClass()
+                   // empty object new stdClass()
                    $payment_type = new PaymentType("payment_type_id", "payment_type_name", null, null);            
                    $sale_state = new SaleState("sale_state_id", "sale_state_name", null, null);                
                    
@@ -83,7 +88,7 @@
                 return $dataList;
             }   
             catch(Exception $e){                
-                //throw new Exception("Error en el Sistema");
+                // throw new Exception("Error en el Sistema");
                 throw new Exception($e->getMessage());
             }            
         }
@@ -96,13 +101,13 @@
                 $conexion = $this->Connect();                
                 $conexion->beginTransaction();
 
-                //INSERT TB_SALE
+                // INSERT TB_SALE
                 $query = "INSERT INTO TB_SALE VALUES (:id_sale, :date_sale, :id_payment_type, :comment, :net_amount, :total_commission, :total_amount, :id_sale_state, :at_created, :at_updated);";
                 $result = $conexion->prepare($query);
                 $result->execute(
                     [
                         ":id_sale" => NULL,
-                        ":date_sale" => $sale->getDate_sale(), //ej: '2020-12-28'
+                        ":date_sale" => $sale->getDate_sale(), // ej: '2020-12-28'
                         ":id_payment_type" => $payment_type["id_payment_type"],
                         ":comment" => $sale->getComment(),
                         ":net_amount" => $sale->getNet_amount(),
@@ -113,18 +118,20 @@
                         ":at_updated" => NULL 
                     ]
                 );
-                 //ultimo ID insertado
+                 // ultimo ID insertado
                 $lastId = $conexion->lastInsertId();
-                
-                if($this->land_availability($conexion,$lands)){
-                     //INSERT TB_SALE_LANDS                
+                    // verificar si un lote esta en uso
+                if($this->service_land->land_availability($lands)){
+                     // INSERT TB_SALE_LANDS - UPDATE LAND STATE                              
                     $this->insert_sale_lands($conexion, $lastId ,$lands);
-                    //INSERT TB_SALE_USER : LOS COMPRADORES               
+                    // UPDATE STATE LANDS JUST BY SALE
+                    $this->update_lands_state_by_Sale($conexion, $lands);
+                    // INSERT TB_SALE_USER : LOS COMPRADORES               
                     $this->insert_sale_user($conexion, $lastId ,$users_buyers);                       
-                    //INSERT TB_SALE_REFERRED : LOS Referidos quienes traeron al comprador y se les paga una comisión
+                    // INSERT TB_SALE_REFERRED : LOS Referidos quienes traeron al comprador y se les paga una comisión
                     $this->insert_sale_referred($conexion, $lastId ,$users_referred);
                 }else{
-                    throw new Exception("Lote asignado en uso");
+                    throw new Exception("Lote tiene asignado un propietario, verficar");
                 }
                             
                 $conexion->commit();
@@ -135,30 +142,8 @@
                throw new Exception($e->getMessage());
             }                                 
         }
-
-        function update(){}
-
-        function delete(){}
-        
-        // ############ INSERTS ABOUT SALE
-        private function land_availability($conexion ,$lands){
-            $resp = true;
-            foreach($lands as $item){  
-                $query = "SELECT * FROM TB_SALE_LAND WHERE id_land = :id_land AND state = :state;";
-                $result = $conexion->prepare($query);
-                $result->execute([
-                    ":id_land" => $item["id_land"],
-                    ":state" => 1,
-                    ]);
-                $data = $result->fetchAll(PDO::FETCH_ASSOC);                
-                if(count($data) > 0){                   
-                    $resp = false;                   
-                    break;
-                }
-            }
-            return $resp;
-        }
-
+   
+        //  ############ INSERTS ABOUT SALE
         private function insert_sale_lands($conexion, $lastId ,$lands){
             foreach($lands as $item){  
                 $query = "INSERT INTO TB_SALE_LAND VALUES (:id_sale, :id_land, :initial_payment, :total_interest, :id_payment_method, :state, :at_created, :at_updated);";
@@ -174,7 +159,25 @@
                         ":at_created" => NULL,
                         ":at_updated" => NULL 
                     ]
-                );
+                );                
+            }
+        }
+
+        private function update_lands_state_by_sale($conexion, $lands){
+            foreach($lands as $item){                      
+                $execute = [":id_land"=> (int) $item["id_land"]];
+                $query = "UPDATE TB_LAND SET id_land_state = :id_land_state WHERE id_land = :id_land;";                                                                                        
+                $result = $conexion->prepare($query);    
+                //  1 = al contado / 2 en partes
+                if((int)$item["id_payment_method"] == 1){                        
+                    //  vendido : ya tiene dueño
+                    $execute["id_land_state"] = 2;
+                }else{
+                    // separado : tiene dueño pero sigue pagando
+                    $execute["id_land_state"] = 3;
+                }                    
+                // var_dump($execute);
+                $result->execute($execute); 
             }
         }
 
@@ -185,7 +188,7 @@
                 $result->execute(
                     [
                         ":id_sale" => $lastId,
-                        ":id_user" => $item["id_user"], //ej: '2020-12-28'
+                        ":id_user" => $item["id_user"],
                         ":state"=>'1',
                         ":at_created" => NULL,
                         ":at_updated" => NULL 
@@ -210,7 +213,12 @@
                 );
             }
 
-        }
+        }        
+        // ####################################
+        
+        function update(){}
+
+        function delete(){}
         
     }
 
