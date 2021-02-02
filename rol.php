@@ -5,8 +5,8 @@
     
     switch($_SERVER['REQUEST_METHOD']){
         case 'GET':
-            if(isset($_GET['id'])){
-                $controller->getById($_GET['id']);                
+            if(isset($_GET['idUser'])){
+                $controller->getByIdUser($_GET['idUser']);                
             }else{
                 $controller->getAll();
             }                        

@@ -1,5 +1,7 @@
 <?php
 header('Access-Control-Allow-Origin: *'); 
+header('Access-Control-Allow-Methods: POST, PUT, GET, OPTIONS'); 
+ 
 include __DIR__.'./../config.php';
 
 class Conexion{

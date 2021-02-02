@@ -38,11 +38,15 @@
             }            
         }
 
-        function getAllWithLands(){
+        function getAllWithLands($mask = false){
             try{
                 $dataList = array();
                 $conexion = $this->Connect();
-                $query = "SELECT * FROM TB_ZONE";
+                $query = "SELECT * FROM TB_ZONE ";
+                if($mask){  
+                    $query .= "ORDER BY mask_number ASC";
+                }
+
                 $result = $conexion->prepare($query);
                 $result->execute();
                 $data = $result->fetchAll(PDO::FETCH_ASSOC);
@@ -53,7 +57,7 @@
                         $item["zone"],
                         $item["perimeter"],
                         $item["lands"],
-                        $this->service_land->getByIdZone($item["id_zone"])
+                        $this->service_land->getByIdZone($item["id_zone"], $mask)
                      );  
                      
                      $dataList[] = $rol->serialize();
@@ -79,7 +83,8 @@
                                 $data[0]["id_zone"],
                                 $data[0]["zone"],
                                 $data[0]["perimeter"],
-                                $data[0]["lands"]
+                                $data[0]["lands"],
+                                null
                              );                    
                         return $zone->serialize();                 
                 }else{
@@ -108,7 +113,8 @@
                                 $data[0]["id_zone"],
                                 $data[0]["zone"],
                                 $data[0]["perimeter"],
-                                $data[0]["lands"]
+                                $data[0]["lands"],
+                                null
                              );                    
                         return $zone->serialize();                 
                 }else{

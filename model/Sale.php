@@ -4,11 +4,11 @@ Class Sale{
 
     private $id_sale;
     private $date_sale;
+    private $payment_type;    
     private $comment;
     private $net_amount = 0.0;
     private $total_commission = 0.0;
-    private $total_amount = 0.0;
-    private $payment_type;    
+    private $total_amount = 0.0;    
     private $sale_state;
     private $at_created;
     private $at_updated;

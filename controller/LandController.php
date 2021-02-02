@@ -21,9 +21,9 @@
             }            
         }
 
-        function getByIdZone($id_zone){
+        function getByIdZoneAndState($id_zone, $state){
             try{                
-                $data = $this->service->getByIdZone($id_zone);
+                $data = $this->service->getByIdZoneAndState($id_zone, $state);
                 echo json_encode($data);                
             }   
             catch(Exception $e){

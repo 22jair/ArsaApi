@@ -71,9 +71,9 @@
                             null,
                             $data["date_sale"],                            
                             $data["comment"],
-                            $totalAmount - $totalCommission,
-                            $totalCommission,                            
-                            $totalAmount,
+                            $totalAmount - $totalCommission, //net_amount
+                            $totalCommission, //monto del referido                           
+                            $totalAmount, // monto total a pagar
                             $data["payment_type"],
                             $data["sale_state"],
                             null,

@@ -21,9 +21,9 @@
             }            
         }
           
-        function getAllWithLands(){
-            try{                
-                $data = $this->service->getAllWithLands();
+        function getAllWithLands($mask = false){
+            try{                                
+                $data = $this->service->getAllWithLands($mask);
                 echo json_encode($data);                
             }   
             catch(Exception $e){

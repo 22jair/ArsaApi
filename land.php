@@ -7,8 +7,8 @@
         case 'GET':
             if(isset($_GET['id'])){
                 //$controller->getById($_GET['id']); die();             
-            }if(isset($_GET['id_zone'])){
-                $controller->getByIdZone($_GET['id_zone']); die();                
+            }else if(isset($_GET['id_zone']) && isset($_GET['state']) ){
+                $controller->getByIdZoneAndState($_GET['id_zone'], $_GET['state']); die();                            
             }else{
                 $controller->getAll(); die(); 
             }                        

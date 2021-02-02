@@ -15,13 +15,13 @@ Class User  {
     private $username;
     private $password;
     private $state;
-    //private $roles;
-    private $id_rol;
+    private $roles;
+    //private $id_rol;
     private $at_created;
     private $at_updated;    
 
 
-    public function __construct($id_user, $name, $father_name, $mother_name, $dni, $dni_url, $birthdate, $phone_number, $address_reference, $email, $username, $password, $state, $id_rol ,$at_created, $at_updated){
+    public function __construct($id_user, $name, $father_name, $mother_name, $dni, $dni_url, $birthdate, $phone_number, $address_reference, $email, $username, $password, $state, $roles ,$at_created, $at_updated){
         $this->id_user = $id_user;
         $this->name = $name;
         $this->father_name = $father_name;
@@ -35,8 +35,8 @@ Class User  {
         $this->username = $username;
         $this->password = $password;
         $this->state = $state;
-        //$this->roles = $roles;
-        $this->id_rol = $id_rol;
+        $this->roles = $roles;
+        //$this->id_rol = $id_rol;
         $this->at_created = $at_created;
         $this->at_updated = $at_updated;
     }
@@ -346,23 +346,25 @@ Class User  {
         return $this;
     }   
 
-    /**
-     * Get the value of id_rol
+     /**
+     * Get the value of roles
      */ 
-    public function getId_rol()
+    public function getRoles()
     {
-        return $this->id_rol;
+        return $this->roles;
     }
 
     /**
-     * Set the value of id_rol
+     * Set the value of at_updated
      *
      * @return  self
      */ 
-    public function setId_rol($id_rol)
+    public function setRoles($roles)
     {
-        $this->id_rol = $id_rol;
+        $this->roles = $roles;
 
         return $this;
-    }
+    } 
+
+
 }

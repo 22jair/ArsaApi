@@ -42,9 +42,9 @@ include_once __DIR__.'./../db/conexion.php';
 
                 $conexion = $this->Connect();
                 $query = "SELECT ROL.* FROM TB_ROL as ROL
-                INNER JOIN TB_USER_ROL as  USER_ROL ON USER_ROL.id_rol = ROL.id_rol
-                INNER JOIN TB_USER AS USER ON USER.id_user = USER_ROL.id_user
-                WHERE USER_ROL.id_user = :id_user";
+                INNER JOIN TB_USER_ROL as UR ON UR.id_rol = ROL.id_rol
+                INNER JOIN TB_USER AS USER ON UR.id_user = USER.id_user
+                WHERE USER.id_user = :id_user";
                 $result = $conexion->prepare($query);
                 $result->execute([':id_user'=>(int) $id_user]);
                 $data = $result->fetchAll(PDO::FETCH_ASSOC);

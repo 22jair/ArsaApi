@@ -45,18 +45,20 @@
             }            
         }
 
-        function add($data){
-
-            try{
-                if(isset($data["name"]) && isset($data["father_name"]) && isset($data["mother_name"]) && isset($data["dni"]) && isset($data["birthdate"]) && isset($data["id_rol"]) ){
+        function add($data, $file){                   
+            try{ 
+                // isset($data["mother_name"]) NO TODOS TIENEN 2 APELLIDOS
+                if(isset($data["name"]) && isset($data["father_name"]) && isset($data["dni"]) && isset($data["birthdate"]) && isset($data["roles"]) ){
                     if(strlen($data["name"]) <= 0) throw new Exception("Ingrese un nombre");
                     if(strlen($data["father_name"]) <= 0) throw new Exception("Ingrese apellido paterno");
-                    if(strlen($data["mother_name"]) <= 0) throw new Exception("Ingrese apellido materno");
+                    // if(strlen($data["mother_name"]) <= 0) throw new Exception("Ingrese apellido materno");
                     if(strlen($data["dni"]) <= 0) throw new Exception("Ingrese el DNI");
                     if(strlen($data["birthdate"]) <= 0) throw new Exception("Ingrese fecha de nacimiento");
-                    if( (int)$data["id_rol"] < 0 && (int)$data["id_rol"] > 4 ) throw new Exception("Ingrese un rol correcto");                    
+                    if( count($data["roles"]) == 0 ) throw new Exception("Ingrese un rol correcto");                    
                     $data["username"] = $data["dni"];   
-                                        
+                    $data["dni_url"] = '';
+                    if($file !== null) $data["dni_url"] = $data["dni"].".jpg";
+                    
                     $user = new User(                        
                             null,
                             $data["name"],
@@ -71,39 +73,43 @@
                             $data["username"],
                             "123",//null,
                             '1',
-                            $data["id_rol"],
+                            $data["roles"],
                             null,
                             null
-                         ); 
+                         );                     
 
-                    //echo json_encode($data);                
-                    if($this->service->add($user)) 
+                    if($this->service->add($user)){  
+                        if($file !== null) $this->saveDniImg($file, $data["dni_url"]);
                         echo  json_encode(["message"=>"Usuario registrado correctamente"]); 
-                    else  
-                        throw new Exception("Error en el registro de datos");
+                    }else{ throw new Exception("Error en el registro de datos"); }  
+                        
                 }else{
                     throw new Exception("Ingrese los campos correctos");
                 }
                
             }   
-            catch(Exception $e){
+            catch(Exception $e){    
                 http_response_code(404);
-                echo json_encode(["message"=>$e->getMessage()]);
-            }            
+                echo json_encode(["message"=>$e->getMessage()]);                
+            }  
+
         }
 
-        function update($data){
+        function update($data, $file){
              try{
-                if(isset($data["id_user"]) && isset($data["name"]) && isset($data["father_name"]) && isset($data["mother_name"]) && isset($data["dni"]) && isset($data["birthdate"]) && isset($data["id_rol"]) ){
+                if(isset($data["id_user"]) && isset($data["name"]) && isset($data["father_name"]) && isset($data["dni"]) && isset($data["birthdate"]) && isset($data["roles"]) ){
                     if(strlen($data["name"]) <= 0) throw new Exception("Ingrese un nombre");
                     if(strlen($data["father_name"]) <= 0) throw new Exception("Ingrese apellido paterno");
-                    if(strlen($data["mother_name"]) <= 0) throw new Exception("Ingrese apellido materno");
+                    //if(strlen($data["mother_name"]) <= 0) throw new Exception("Ingrese apellido materno");
                     if(strlen($data["dni"]) <= 0) throw new Exception("Ingrese el DNI");
                     if(strlen($data["birthdate"]) <= 0) throw new Exception("Ingrese fecha de nacimiento");
                     //if(strlen($data["username"]) <= 0) throw new Exception("Ingrese un nombre de usuario");
                     //if(count($data["id_rol"]) <= 0) throw new Exception("Ingrese un rol al usuario");
-                    if( (int)$data["id_rol"] < 0 && (int)$data["id_rol"] > 4 ) throw new Exception("Ingrese un rol correcto");                    
-                                                            
+                    if( count($data["roles"]) == 0 ) throw new Exception("Ingrese un rol correcto");                    
+                    
+                    $data["username"] = $data["dni"];  
+                    if($file !== null) $data["dni_url"] = $data["dni"].".jpg";
+
                     $user = new User(                        
                             $data["id_user"],
                             $data["name"],
@@ -115,19 +121,20 @@
                             $data["phone_number"],
                             $data["address_reference"],
                             $data["email"],
-                            $data["username"] = $data["dni"],
-                            $data["password"],                            
+                            $data["username"],
+                            "123",                            
                             $data["state"],                            
-                            $data["id_rol"],
+                            $data["roles"],
                             null,
                             null
                          ); 
 
                     //echo json_encode($data);                
-                    if($this->service->update($user)) 
-                        echo  json_encode(["message"=>"Usuario actualizado correctamente"]); 
-                    else  
-                        throw new Exception("Error en el registro de datos");
+                    if($this->service->update($user)){
+                        if($file !== null) $this->saveDniImg($file, $data["dni_url"]);
+                        echo json_encode(["message"=>"Usuario actualizado correctamente"]); 
+                    } else{ throw new Exception("Error en el registro de datos"); }  
+                        
                 }else{
                     throw new Exception("Ingrese los campos correctos");
                 }
@@ -150,6 +157,10 @@
                 http_response_code(404);
                 echo json_encode(["message"=>$e->getMessage()]);
             }  
+        }
+
+        private function saveDniImg($file, $name){
+            move_uploaded_file($file['tmp_name'], 'storage/user/'.$name);
         }
         
     }

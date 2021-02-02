@@ -6,11 +6,18 @@
     switch($_SERVER['REQUEST_METHOD']){
         case 'GET':
             if(isset($_GET['id'])){
-                $controller->getById($_GET['id']); die();             
-            }if(isset($_GET['id_land'])){
-                $controller->getByIdLand($_GET['id_land']); die();                
-            }if(isset($_GET['lands'])){
-                $controller->getAllWithLands(); die(); 
+                $controller->getById($_GET['id']); die();  
+
+            }else if(isset($_GET['id_land'])){
+                $controller->getByIdLand($_GET['id_land']); die();   
+
+            }else if(isset($_GET['lands'])){
+                //retorna la lista de land pero con orderby number - para una tabla 
+                $controller->getAllWithLands(false); die(); 
+
+            }else if(isset($_GET['lands_mask'])){
+                //retorna la lista de land pero con orderby mask_number - para el diseño 
+                $controller->getAllWithLands(true); die(); 
             }
             else{
                 $controller->getAll(); die();                 

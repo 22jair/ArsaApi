@@ -26,7 +26,7 @@
             }            
         }
 
-        function getById($id_usuario){
+        function getByIdUser($id_usuario){
             try{
                 $data = $this->service->getByIdUser((int) $id_usuario);              
                 echo json_encode($data);                

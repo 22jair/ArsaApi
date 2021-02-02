@@ -40,7 +40,7 @@
                         null,
                         $item["state"],
                         //$this->service_rol->getByIdUser($item["id_user"]),
-                        $item["id_rol"],
+                        $this->service_rol->getByIdUser($item["id_user"]),
                         null,
                         null
                      );                    
@@ -77,10 +77,9 @@
                         $data[0]["email"],
                         $data[0]["username"],
                         null,
-                        $data[0]["state"],
-                        //$this->service_rol->getByIdUser($data[0]["id_user"]),
-                        $data[0]["id_rol"],
-                        null,
+                        $data[0]["state"],                        
+                        $this->service_rol->getByIdUser($data[0]["id_user"]),
+                        $data[0]["at_created"],                        
                         null
                         );                    
                         return $user->serialize();                 
@@ -94,7 +93,7 @@
                 throw new Exception($e->getMessage());
             }            
         }
-
+        // si no encuentra retorna una clase vacia
         function getByDNI($dni){
             try{
                 $conexion = $this->Connect();
@@ -118,7 +117,7 @@
                         null,
                         $data[0]["state"],
                         //$this->service_rol->getByIdUser($data[0]["id_user"]),
-                        $data[0]["id_rol"],
+                        null,
                         null,
                         null
                         );                    
@@ -139,7 +138,9 @@
 
             try{            
                 $conexion = $this->Connect();
-                $query = "INSERT INTO TB_USER VALUES (NULL, :name, :father_name, :mother_name, :dni, :dni_url, :birthdate, :phone_number, :address_reference, :email, :username, :password, :id_rol, :state, NULL, NULL);";
+                $conexion->beginTransaction();
+                
+                $query = "INSERT INTO TB_USER VALUES (NULL, :name, :father_name, :mother_name, :dni, :dni_url, :birthdate, :phone_number, :address_reference, :email, :username, :password, :state, NULL, NULL);";
                 //echo $query;
                 $result = $conexion->prepare($query);
                 $result->execute(
@@ -155,13 +156,30 @@
                         ":email"=>$user->getEmail(),           
                         ":username"=>$user->getUsername(),                                          
                         ":password"=>$user->getPassword(),
-                        ":id_rol"=>$user->getId_rol(),
                         ":state"=>$user->getState()
                     ]
-                );
+                ); 
+
+                $lastId = $conexion->lastInsertId();
+                
+                foreach($user->getRoles() as $item){
+
+                    $query = "INSERT INTO TB_USER_ROL VALUES (:id_user, :id_rol);";    
+                    $result = $conexion->prepare($query);
+                    $result->execute(
+                        [
+                            ":id_user"=>(int) $lastId,
+                            ":id_rol"=>(int) $item->id_rol                          
+                        ]
+                    );  
+                }
+                
+            
+                $conexion->commit();
                 return true;
             }   
-            catch(Exception $e){            
+            catch(Exception $e){     
+                $conexion->rollBack();                
                throw new Exception($e->getMessage());
             }                                 
         }
@@ -169,8 +187,11 @@
         function update(User $user){
             try{
                 
-                $current_user = $this->getById($user->getId_user());                           
-                
+                $current_user_by_dni = $this->getByDNI($user->getDni());
+                $current_user = $this->getById($user->getId_user());
+                //validamos si el DNI esta en uso
+                if( is_array($current_user_by_dni) && $current_user_by_dni["dni"] != $current_user["dni"]) throw new Exception("DNI en uso");
+
                 $data_update = [
                     ":name"=>$user->getName(),
                     ":father_name"=>$user->getFather_name(),
@@ -183,7 +204,6 @@
                     ":email"=>$user->getEmail(),           
                  //username                     
                     ":password"=>$user->getPassword(),
-                    ":id_rol"=>$user->getId_rol(),
                     ":state"=>$user->getState(),
                     ":id_user"=>$user->getId_user(),                    
                 ];
@@ -200,23 +220,39 @@
                                             address_reference = :address_reference,
                                             email = :email,
                                             password = :password,
-                                            id_rol = :id_rol,
-                                            state = :state";                              
+                                            state = :state";  
+
                 if($current_user["dni"] !== $user->getDni()){
                     $query .=  ", dni = :dni, username = :username";
                     $data_update[":dni"] = (int) $user->getDni();                    
                     $data_update[":username"] = $user->getUsername();
                 }; 
 
-                // if($current_user["username"] !== $user->getUsername()){
-                //     $query .=  ", username = :username";
-                //     $data_update[":username"] = $user->getUsername();                    
-                // }
-
                 $query .= " WHERE id_user = :id_user;";                   
               
                 $result = $conexion->prepare($query);
-                $result->execute($data_update);                                                                 
+                $result->execute($data_update);   
+                
+
+                //limpiamos roles y seteamos
+                $query = "delete from tb_user_rol where id_user= :id_user;";  
+                $result = $conexion->prepare($query);
+                $result->execute([":id_user"=>$user->getId_user()]);
+
+                foreach($user->getRoles() as $item){
+                    $query = "INSERT INTO TB_USER_ROL VALUES (:id_user, :id_rol);";    
+                    $result = $conexion->prepare($query);
+                    $result->execute(
+                        [
+                            ":id_user"=>$user->getId_user(),
+                            ":id_rol"=>(int) $item->id_rol                          
+                        ]
+                    );  
+                }
+
+
+
+
                  return true;
             }   
             catch(Exception $e){            
@@ -255,6 +291,7 @@
             }
         }
         
+
     }
 
 ?>
